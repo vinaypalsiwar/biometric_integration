@@ -108,6 +108,13 @@
    "label": "Total Logs"
   },
   {
+   "fieldname": "connection_mode",
+   "fieldtype": "Select",
+   "label": "Connection Mode",
+   "options": "Direct\nLocal Connector",
+   "default": "Direct"
+  },
+  {
    "fieldname": "last_error",
    "fieldtype": "Small Text",
    "label": "Last Error"
