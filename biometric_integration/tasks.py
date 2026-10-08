@@ -2,7 +2,7 @@ import frappe
 
 
 def sync_enabled_devices():
-    """Sync enabled ZKTeco devices every 30 minutes when enabled in settings."""
+    """Sync enabled Direct ZKTeco devices every 30 minutes."""
 
     try:
         settings = frappe.get_single("Biometric Sync Settings")
@@ -13,14 +13,25 @@ def sync_enabled_devices():
         devices = frappe.get_all(
             "Biometric Device",
             filters={"enabled": 1},
-            pluck="name",
+            fields=["name", "connection_mode"],
         )
 
         sync_method = frappe.get_attr(
             "biometric_integration.api.zkteco.sync_device"
         )
 
-        for device_name in devices:
+        for device in devices:
+            device_name = device.name
+            connection_mode = device.connection_mode or "Direct"
+
+            # Local Connector devices are synced by the office connector.
+            # Frappe Cloud must not try to connect directly to the local LAN device.
+            if connection_mode == "Local Connector":
+                frappe.logger("biometric_integration").info(
+                    f"Skipping Local Connector device: {device_name}"
+                )
+                continue
+
             try:
                 result = sync_method(device_name)
                 frappe.logger("biometric_integration").info(
